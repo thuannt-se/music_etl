@@ -18,6 +18,17 @@ def process_song_file(cur, filepath, *args):
 
 
 def process_log_file(cur, filepath, *args):
+    '''
+        Process create insert record into users, times, songplays tables from json file
+
+                Parameters:
+                        cur (cursor): postgre cursor
+                        filepath (string): file path to json file
+                        *args(int): selection mode for insert operation:
+                                    - 1: Insert operation using postgre copy command
+                                    - default: batch insert all record found in file
+
+    '''
     df = pd.read_json(filepath, lines=True)
      # filter by NextSong action
     df_next_song = df[df.page.eq('NextSong')]
@@ -25,24 +36,24 @@ def process_log_file(cur, filepath, *args):
     t = pd.to_datetime(df_next_song['ts'], unit='ms')
     #  # insert time data records
     if(args[0] == 1) :
-        #use ts as primary key (Not actually unique but we accept it for this project)
+        # Accept to lose some records that have invalid json
+        cur.execute(function_is_valid_json)
+        cur.execute(temp_table_json_holder, (filepath,))
+        cur.execute(user_table_insert_with_copy)
+        cur.execute(time_table_insert_with_copy)
+    else:
+        # use ts as primary key (Not actually unique but we accept it for this project)
         time_data = {'start_time': df_next_song['ts'], 'hour': t.dt.hour,
                      'day': t.dt.day, 'week': t.dt.week,
                      'month': t.dt.month, 'year': t.dt.year, 'weekday': t.dt.day_name()}
         time_df = pd.DataFrame(time_data)
         tuples_time = [tuple(x) for x in time_df.to_numpy()]
         user_df = pd.DataFrame({'user_id': df_next_song['userId'], 'first_name': df_next_song['firstName'],
-                                'last_name':df_next_song['lastName'], 'gender': df_next_song['gender'], 'level': df_next_song['level']})
+                                'last_name': df_next_song['lastName'], 'gender': df_next_song['gender'],
+                                'level': df_next_song['level']})
         tuples_user = [tuple(x) for x in user_df.to_numpy()]
         extras.execute_values(cur, time_table_insert, tuples_time)
         extras.execute_values(cur, user_table_insert, tuples_user)
-
-    else:
-        #Accept to lose some records that have invalid json
-        cur.execute(function_is_valid_json)
-        cur.execute(temp_table_json_holder, (filepath,))
-        cur.execute(user_table_insert_with_copy)
-        cur.execute(time_table_insert_with_copy)
 
     for index, row in df.iterrows():
          # get songid and artistid from song and artist tables
@@ -50,7 +61,6 @@ def process_log_file(cur, filepath, *args):
         results = cur.fetchone()
         if results:
             print('result', results)
-            print((row.song, row.artist))
             songid, artistid = results
         else:
             songid, artistid = None, None
@@ -77,8 +87,6 @@ def process_data(cur, conn, filepath, func):
     # iterate over files and process
 
     for i, datafile in enumerate(all_files, 1):
-        # mode 1: Batch insert
-        # mode 2: Postgresql copy insert
         try:
             func(cur, datafile, 2)
             conn.commit()
