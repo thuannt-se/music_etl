@@ -46,17 +46,22 @@ user_table_insert_with_copy = ("""insert into users(user_id, first_name, last_na
                                 select values::json as e from temp_raw_data where is_valid_json(values)
                             ) s ON CONFLICT DO NOTHING
 """)
-time_table_insert_with_copy = ("""insert into times(start_time, hour, day, week, month, year, weekday)
+time_table_insert_with_copy = (""" create temporary table temp_times_table(start_time numeric primary key, hour int, day int, week int, month int, year int, weekday varchar, page varchar) on commit drop;		
+                                    insert into temp_times_table(start_time, hour, day, week, month, year, weekday, page)
                                         select  (e->> 'ts')::numeric as start_time,
                                             EXTRACT(HOUR FROM to_timestamp((e->> 'ts')::numeric/1000)) as hour,
                                             EXTRACT(DAY FROM  to_timestamp((e->> 'ts')::numeric/1000)) as day,
                                             EXTRACT(WEEK FROM  to_timestamp((e->> 'ts')::numeric/1000)) as week,
                                             EXTRACT(MONTH FROM  to_timestamp((e->> 'ts')::numeric/1000)) as month,
                                             EXTRACT(YEAR FROM  to_timestamp((e->> 'ts')::numeric/1000)) as year,
-                                            EXTRACT(ISODOW  FROM  to_timestamp((e->> 'ts')::numeric/1000)) as weekday
-                                    from (
+                                            EXTRACT(ISODOW  FROM  to_timestamp((e->> 'ts')::numeric/1000)) as weekday,
+                                    		(e->> 'page') as page
+									from (
                                         select values::json as e from temp_raw_data where is_valid_json(values)
-                                    ) s ON CONFLICT DO NOTHING                            
+                                    ) s ON CONFLICT DO NOTHING;
+                                    
+                                    insert into times(start_time, hour, day, week, month, year, weekday)               
+                                        select start_time, hour, day, week, month, year, weekday from temp_times_table where page = 'NextSong' ON CONFLICT DO NOTHING;          
                                 """)
 
 # FIND SONGS
