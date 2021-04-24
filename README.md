@@ -1,8 +1,4 @@
 # MUSIC ETL Project
-## Table of contents
-* [General info](#general-info)
-* [Technologies](#technologies)
-* [Setup](#setup)
 ## General info
 A simple source for ETL coding in python (Project from Udacity)
 ## Technologies
