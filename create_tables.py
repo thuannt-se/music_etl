@@ -11,7 +11,7 @@ def create_database():
     """
     
     # connect to default database
-    conn = psycopg2.connect("host=127.0.0.1 dbname=postgres user=postgres password=admin")
+    conn = psycopg2.connect("host=127.0.0.1 dbname=postgres user=student password=student")
     cur = conn.cursor()
     conn.set_session(autocommit=True)
     # create sparkify database with UTF8 encoding
@@ -22,7 +22,7 @@ def create_database():
     conn.close()    
     
     # connect to sparkify database
-    conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=postgres password=admin")
+    conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
     cur = conn.cursor()
     
     return cur, conn
