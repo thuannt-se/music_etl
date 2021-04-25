@@ -6,7 +6,13 @@ import pandas as pd
 from sql_queries import *
 
 
-def process_song_file(cur, filepath, *args):
+def process_song_file(cur, filepath):
+    '''
+        Process create insert record into songs, artists, tables from json file
+                Parameters:
+                        cur (cursor): postgre cursor
+                        filepath (string): file path to json file
+    '''
     # open song file
     df = pd.read_json(filepath, typ='series')
     # insert song record
@@ -17,15 +23,14 @@ def process_song_file(cur, filepath, *args):
     cur.execute(artist_table_insert, artist_data)
 
 
-def process_log_file(cur, filepath, *args):
+def process_log_file(cur, filepath, mode= None):
     '''
         Process create insert record into users, times, songplays tables from json file
-
                 Parameters:
                         cur (cursor): postgre cursor
                         filepath (string): file path to json file
-                        *args(int): selection mode for insert operation:
-                                    - 1: Insert operation using postgre copy command
+                        mode(string): selection mode for insert operation:
+                                    - copy: Insert operation using postgre copy command
                                     - default: batch insert all record found in file
 
     '''
@@ -35,7 +40,7 @@ def process_log_file(cur, filepath, *args):
     # convert timestamp column to datetime
     t = pd.to_datetime(df_next_song['ts'], unit='ms')
     #  # insert time data records
-    if(args[0] == 1) :
+    if(mode == 'copy') :
         # Accept to lose some records that have invalid json
         cur.execute(function_is_valid_json)
         cur.execute(temp_table_json_holder, (filepath,))
@@ -88,7 +93,7 @@ def process_data(cur, conn, filepath, func):
 
     for i, datafile in enumerate(all_files, 1):
         try:
-            func(cur, datafile, 2)
+            func(cur, datafile)
             conn.commit()
             print('{}/{} files processed.'.format(i, num_files))
         except (Exception, psycopg2.DatabaseError) as error:

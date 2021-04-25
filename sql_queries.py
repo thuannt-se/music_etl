@@ -8,8 +8,8 @@ time_table_drop = "drop table if exists time"
 
 # CREATE TABLES
 
-songplay_table_create = ("""create table if not exists songplays(start_time numeric PRIMARY KEY, 
-                        user_id varchar, level varchar, song_id varchar, artist_id varchar, session_id int, location varchar, user_agent varchar)""")
+songplay_table_create = ("""create table if not exists songplays(songplays_id serial primary key, start_time numeric NOT NULL, 
+                        user_id varchar NOT NULL, level varchar, song_id varchar, artist_id varchar, session_id int NOT NULL, location varchar, user_agent varchar)""")
 
 user_table_create = ("""create table if not exists users(user_id varchar PRIMARY KEY, first_name varchar, last_name varchar, gender varchar, level varchar)""")
 
@@ -30,7 +30,8 @@ song_table_insert = ("""insert into songs(song_id, title, artist_id, year, durat
 
 artist_table_insert = ("""insert into artists(artist_id, name, location, latitude, longitude) values (%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING""")
 
-user_table_insert = ("""insert into users(user_id, first_name, last_name, gender, level) values %s ON CONFLICT DO NOTHING""")
+user_table_insert = ("""insert into users(user_id, first_name, last_name, gender, level) select distinct on(user_id) user_id, first_name, last_name, gender, level
+                            from (values %s) v(user_id, first_name, last_name, gender, level) ON CONFLICT (user_id) DO UPDATE SET level=EXCLUDED.level""")
 
 time_table_insert = ("""insert into times(start_time, hour, day, week, month, year, weekday) values %s ON CONFLICT DO NOTHING""")
 # INSERT RECORDS USING COPY
