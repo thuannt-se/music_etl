@@ -8,16 +8,56 @@ time_table_drop = "drop table if exists time"
 
 # CREATE TABLES
 
-songplay_table_create = ("""create table if not exists songplays(songplays_id serial primary key, start_time numeric NOT NULL, 
-                        user_id varchar NOT NULL, level varchar, song_id varchar, artist_id varchar, session_id int NOT NULL, location varchar, user_agent varchar)""")
+songplay_table_create = ("""create table if not exists songplays
+                            (
+                                songplays_id serial primary key, 
+                                start_time numeric NOT NULL, 
+                                user_id varchar NOT NULL, 
+                                level varchar, 
+                                song_id varchar, 
+                                artist_id varchar, 
+                                session_id int NOT NULL, 
+                                location varchar, 
+                                user_agent varchar
+                            )""")
 
-user_table_create = ("""create table if not exists users(user_id varchar PRIMARY KEY, first_name varchar, last_name varchar, gender varchar, level varchar)""")
+user_table_create = ("""create table if not exists users
+                            (
+                                user_id varchar PRIMARY KEY, 
+                                first_name varchar NOT NULLs, 
+                                last_name varchar NOT NULLs, 
+                                gender varchar, 
+                                level varchar
+                            )""")
 
-song_table_create = ("""create table if not exists songs(song_id varchar PRIMARY KEY, title varchar, artist_id varchar, year int, duration numeric)""")
+song_table_create = ("""create table if not exists songs
+                            (
+                                song_id varchar PRIMARY KEY, 
+                                title varchar NOT NULLs, 
+                                artist_id varchar NOT NULLs, 
+                                year int, 
+                                duration numeric
+                            )""")
 
-artist_table_create = ("""create table if not exists artists(artist_id varchar PRIMARY KEY, name varchar, location varchar, latitude numeric, longitude numeric)""")
+artist_table_create = ("""create table if not exists artists
+                            (
+                                artist_id varchar PRIMARY KEY, 
+                                name varchar NOT NULLs, 
+                                location varchar, 
+                                latitude numeric, 
+                                longitude numeric
+                            )""")
 
-time_table_create = ("""create table if not exists times(start_time numeric primary key, hour int, day int, week int, month int, year int, weekday varchar)""")
+time_table_create = ("""create table if not exists times
+                            (
+                                start_time numeric primary key, 
+                                hour int, 
+                                day int, 
+                                week int, 
+                                month int, 
+                                year int, 
+                                weekday varchar
+                            )""")
 
 temp_table_json_holder = ("""create temporary table temp_raw_data(values text) on commit drop;
                             copy temp_raw_data from %s;""")
